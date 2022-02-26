@@ -58,7 +58,7 @@ def show_pcl(pcl):
     vis.add_geometry(pcd)  
     ctr = vis.get_view_control()
     parameters = open3d.io.read_pinhole_camera_parameters("ScreenCamera_2022-02-11-12-35-51.json")
-    #ctr.convert_from_pinhole_camera_parameters(parameters)
+    ctr.convert_from_pinhole_camera_parameters(parameters)
     # step 5 : visualize point cloud and keep window open until right-arrow is pressed (key-code 262)
     while WAIT:
         vis.poll_events()
