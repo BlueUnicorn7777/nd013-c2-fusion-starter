@@ -1,1 +1,0 @@
-../../DATA/results_sequence_3_darknet/training_segment-10963653239323173269_1924_000_1944_000_with_camera_labels__frame-18__lidar_bev.pkl

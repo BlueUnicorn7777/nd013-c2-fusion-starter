@@ -36,30 +36,63 @@ def measure_detection_performance(detections, labels, labels_valid, min_iou=0.5)
     
      # find best detection for each valid label 
     true_positives = 0 # no. of correctly detected objects
+    all_positives = 0
     center_devs = []
     ious = []
     for label, valid in zip(labels, labels_valid):
         matches_lab_det = []
         if valid: # exclude all labels from statistics which are not considered valid
-            
+            all_positives = all_positives + 1
             # compute intersection over union (iou) and distance between centers
 
             ####### ID_S4_EX1 START #######     
             #######
             print("student task ID_S4_EX1 ")
-
+            
             ## step 1 : extract the four corners of the current label bounding-box
+            box = label.box
+            lbox = tools.compute_box_corners(box.center_x , box.center_y, box.width, box.length, box.heading)
             
             ## step 2 : loop over all detected objects
-
+            match_found = False
+            for det in detections:
                 ## step 3 : extract the four corners of the current detection
-                
+                id, dx, dy, dz, dh, dw, dl, dyaw = det
+                if(torch.is_tensor(dx)):
+                    dx = dx.numpy()
+                    dy = dy.numpy()
+                    dw = dw.numpy()
+                    dl = dl.numpy()
+                    dyaw = dyaw.numpy()
+                dbox = tools.compute_box_corners(dx , dy, dw, dl, dyaw)    
                 ## step 4 : computer the center distance between label and detection bounding-box in x, y, and z
-                
+                dist_x = box.center_x - dx
+                dist_y = box.center_y - dy
+                dist_z = box.center_z - dz
                 ## step 5 : compute the intersection over union (IOU) between label and detection bounding-box
-                
+                lpoly = Polygon(lbox)
+                dpoly = Polygon(dbox)
+                Intersection = lpoly.intersection(dpoly).area
+                union = lpoly.union(dpoly).area
+                iou = Intersection/union 
                 ## step 6 : if IOU exceeds min_iou threshold, store [iou,dist_x, dist_y, dist_z] in matches_lab_det and increase the TP count
+                if iou > min_iou:
+                    matches_lab_det.append([iou,dist_x, dist_y, dist_z ])
+                    true_positives = true_positives + 1
+                    """ import shapely.geometry as sg
+                    import shapely.ops as so
+                    import matplotlib.pyplot as plt
+                    new_shape = so.cascaded_union([lpoly, dpoly])
+                    fig, axs = plt.subplots()
+                    axs.set_aspect('equal', 'datalim')
+                    xs, ys = new_shape.exterior.xy
+                    axs.fill(xs, ys, alpha=0.5, fc='r', ec='none')             
+                    plt.show()      
+                    match_found = True      """                   
                 
+            #if (match_found == False):
+            #    print('missed detection')
+
             #######
             ####### ID_S4_EX1 END #######     
             
@@ -77,13 +110,13 @@ def measure_detection_performance(detections, labels, labels_valid, min_iou=0.5)
     # compute positives and negatives for precision/recall
     
     ## step 1 : compute the total number of positives present in the scene
-    all_positives = 0
+    
 
     ## step 2 : compute the number of false negatives
-    false_negatives = 0
+    false_negatives = all_positives-true_positives
 
     ## step 3 : compute the number of false positives
-    false_positives = 0
+    false_positives = len(detections)-true_positives
     
     #######
     ####### ID_S4_EX2 END #######     
@@ -111,12 +144,14 @@ def compute_performance_stats(det_performance_all):
     print('student task ID_S4_EX3')
 
     ## step 1 : extract the total number of positives, true positives, false negatives and false positives
-    
+    all_positives = sum(np.array(pos_negs)[:,0])
+    true_positives = sum(np.array(pos_negs)[:,1])
+    false_negatives = sum(np.array(pos_negs)[:,2])
+    false_positives = sum(np.array(pos_negs)[:,3])
     ## step 2 : compute precision
-    precision = 0.0
-
+    precision = float(true_positives)/(true_positives + false_positives) 
     ## step 3 : compute recall 
-    recall = 0.0
+    recall = float(true_positives)/(true_positives + false_negatives)
 
     #######    
     ####### ID_S4_EX3 END #######     
