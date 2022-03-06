@@ -48,8 +48,7 @@ class Association:
         M = len(meas_list) # M measurements
         
         # initialize association matrix
-        self.unassigned_tracks = list(range(N))
-        self.unassigned_meas = list(range(M))
+       
         self.association_matrix = np.asmatrix(np.inf*np.ones((N,M)))
         '''
         for i in range(M):
@@ -67,9 +66,10 @@ class Association:
                 dist = self.MHD(track, meas ,KF)
                 if self.gating(dist, meas.sensor):
                     self.association_matrix[i,j] = dist
-        
-        print (self.unassigned_tracks)
-        print (self.unassigned_meas)
+        self.unassigned_tracks = list(range(N))
+        self.unassigned_meas = list(range(M))
+        #print (self.unassigned_tracks)
+        #print (self.unassigned_meas)
         print (self.association_matrix)
 
         ############
@@ -126,18 +126,7 @@ class Association:
         # TODO Step 3: return True if measurement lies inside gate, otherwise False
         ############
         
-        threshold = params.gating_threshold
-        if sensor.name == "lidar":
-            DOF = 2 # LiDAR DOF, features = (x,y,z)
-            #threshold = 0.95
-        elif sensor.name == "camera":
-            DOF = 1 # camera DOF,features = (x,y)
-       
-        limit = chi2.cdf(threshold, DOF)
-        if MHD <= limit:
-            return True
-        else:
-            return False    
+        return (MHD < chi2.ppf(params.gating_threshold, sensor.dim_meas))   
         
         ############
         # END student code
@@ -147,12 +136,10 @@ class Association:
         ############
         # TODO Step 3: calculate and return Mahalanobis distance
         ############
-        
         H = meas.sensor.get_H(track.x)
         S_inv = np.linalg.inv(KF.S(track,meas,H))
         gamma = KF.gamma(track, meas)
         return gamma.T*S_inv*gamma
-        
         ############
         # END student code
         ############ 
@@ -184,7 +171,8 @@ class Association:
             
             # save updated track
             manager.track_list[ind_track] = track
-            
+        print (self.unassigned_tracks)
+        print (self.unassigned_meas)   
         # run track management 
         manager.manage_tracks(self.unassigned_tracks, self.unassigned_meas, meas_list)
         

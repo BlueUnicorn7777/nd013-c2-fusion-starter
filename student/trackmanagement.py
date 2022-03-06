@@ -135,7 +135,7 @@ class Trackmanagement:
         for track in self.track_list:
             threshold = params.delete_threshold 
             if(track.wasconfirmed ==  False):
-                threshold = 0.5/params.window
+                threshold = 1/params.window
             if(track.score < threshold  or track.P[0, 0] >= params.max_P or track.P[1, 1] >= params.max_P):
                 self.delete_track(track)
 
