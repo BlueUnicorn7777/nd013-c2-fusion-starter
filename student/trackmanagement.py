@@ -171,6 +171,7 @@ class Trackmanagement:
         track.score += 1./params.window
         if track.score > params.confirmed_threshold:
             track.state =  'confirmed'
+            track.score = 1
             self.wasconfiremd = True
         else:
             track.state =  'tentative'
